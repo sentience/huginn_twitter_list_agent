@@ -76,13 +76,10 @@ module Agents
     end
 
     def starting_at
-      if interpolated[:starting_at].present?
-        begin
-          Time.parse(interpolated[:starting_at])
-        rescue
-          created_at
-        end
-      else
+      return created_at unless interpolated[:starting_at].present?
+      begin
+        Time.parse(interpolated[:starting_at])
+      rescue
         created_at
       end
     end
@@ -103,11 +100,9 @@ module Agents
       end
 
       tweets.each do |tweet|
-        if tweet.created_at >= starting_at
-          memory["since_id"] = tweet.id if !memory["since_id"] || (tweet.id > memory["since_id"])
-
-          create_event payload: tweet.attrs
-        end
+        next if tweet.created_at < starting_at
+        memory["since_id"] = tweet.id if !memory["since_id"] || (tweet.id > memory["since_id"])
+        create_event payload: tweet.attrs
       end
     end
   end
